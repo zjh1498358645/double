@@ -27,7 +27,7 @@ npm run deploy:cloudflare
 
 工作流 `.github/workflows/cloudflare.yml` 已配置：main分支推送后测试、构建、应用迁移、发布。首次启用需要在仓库 Settings → Secrets and variables → Actions 添加 `CLOUDFLARE_API_TOKEN`，不要写进源码、聊天或普通变量。
 
-在 Cloudflare 创建限制到此账号的API token，授权 Account / Workers Scripts / Edit 与 Account / D1 / Edit。仅用于此仓库部署，可按需加到期时间。OAuth本机登录不会自动成为GitHub的长期部署凭据。未添加secret前，网站仍可使用，但自动部署不能发布更新。
+在 Cloudflare 创建限制到此账号的API token，授权 Account / Workers Scripts / Edit、Account / Cloudflare Pages / Edit 与 Account / D1 / Edit。仅用于此仓库部署，可按需加到期时间。OAuth本机登录不会自动成为GitHub的长期部署凭据。未添加secret前，网站仍可使用，但自动部署不能发布更新。
 
 参考：[GitHub Actions 部署](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)、[Workers 免费计划](https://developers.cloudflare.com/workers/platform/pricing/)、[D1 限制](https://developers.cloudflare.com/d1/platform/limits/)。
 
