@@ -15,7 +15,8 @@
     "build:cloudflare": "node scripts/build-cloudflare.mjs build",
     "dev:cloudflare": "node scripts/build-cloudflare.mjs dev",
     "deploy:cloudflare": "wrangler deploy --config dist/server/wrangler.json",
-    "build:github": "vite build --config vite.github.config.ts"
+    "build:github": "vite build --config vite.github.config.ts",
+    "deploy:pages-api": "node scripts/deploy-pages-api.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

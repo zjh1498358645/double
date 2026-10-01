@@ -1,0 +1,4 @@
+import {mkdtempSync,cpSync,readFileSync,writeFileSync} from 'node:fs';import {tmpdir} from 'node:os';import path from 'node:path';import {spawnSync} from 'node:child_process';
+// Pages requires its own root config; use an isolated directory so the Vite
+// Worker's .wrangler/deploy/config.json cannot override that config.
+const stage=mkdtempSync(path.join(tmpdir(),'hideaway-pages-api-'));cpSync('dist/client',stage,{recursive:true});cpSync('dist/server',path.join(stage,'_worker.js'),{recursive:true});const config=JSON.parse(readFileSync('wrangler.pages.jsonc','utf8'));config.pages_build_output_dir='.';writeFileSync(path.join(stage,'wrangler.json'),JSON.stringify(config));const cli=path.resolve('node_modules/wrangler/bin/wrangler.js');const result=spawnSync(process.execPath,[cli,'pages','deploy','.', '--project-name',config.name,'--branch','main'],{cwd:stage,stdio:'inherit'});process.exitCode=result.status??1;

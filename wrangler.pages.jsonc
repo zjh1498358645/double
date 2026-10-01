@@ -1,6 +1,5 @@
 {
   "name": "double-secret-base-api",
-  "account_id": "e18dd6b4cca4ad434e6eccac45578318",
   "pages_build_output_dir": "./dist-pages-api",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": [

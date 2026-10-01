@@ -30,3 +30,9 @@ npm run deploy:cloudflare
 在 Cloudflare 创建限制到此账号的API token，授权 Account / Workers Scripts / Edit 与 Account / D1 / Edit。仅用于此仓库部署，可按需加到期时间。OAuth本机登录不会自动成为GitHub的长期部署凭据。未添加secret前，网站仍可使用，但自动部署不能发布更新。
 
 参考：[GitHub Actions 部署](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)、[Workers 免费计划](https://developers.cloudflare.com/workers/platform/pricing/)、[D1 限制](https://developers.cloudflare.com/d1/platform/limits/)。
+
+## GitHub Pages 界面
+
+页面地址：https://zjh1498358645.github.io/double/ 。界面静态托管在GitHub，后台地址 https://double-secret-base-api.pages.dev 使用相同D1存档。GitHub版本的私人钥匙保存在该浏览器的本地存储中，仅用于对指定后台发送Authorization请求；不依赖跨站Cookie。不要在他人的手机保存自己的私人钥匙。旧钥匙仍可登录同一账号。
+
+构建界面：npm run build:github；GitHub Pages工作流不需要Cloudflare部署密钥。更新后台：npm run build:cloudflare 后执行 npm run deploy:pages-api，仍需要本机Cloudflare登录。后端跨域只允许 https://zjh1498358645.github.io，后台不可达时页面会显示连接提示。GitHub与Pages域名在具体手机网络上的可达性需要用户实测。
