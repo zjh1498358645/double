@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {newKey,keyIdentity,readKey,keyCookie} from '../src/server/key-auth.ts';
+test('256-bit private keys map to stable distinct identities',async()=>{const a=newKey(),b=newKey();assert.match(a,/^[a-f0-9]{64}$/);assert.notEqual(a,b);assert.equal(await keyIdentity(a),await keyIdentity(a));assert.notEqual(await keyIdentity(a),await keyIdentity(b));});
+test('malformed keys and forged platform headers cannot authenticate',async()=>{assert.equal(readKey('oai-authenticated-user-id=owner'),null);assert.equal(readKey('__Host-hideaway_key=short'),null);assert.equal(await keyIdentity('x'),null);});
+test('cookie is httpOnly secure and sameSite, with host-only scope',()=>{const k=newKey(),cookie=keyCookie(k,true);assert.ok(cookie.startsWith('__Host-hideaway_key='));assert.ok(cookie.includes('HttpOnly'));assert.ok(cookie.includes('Secure'));assert.ok(cookie.includes('SameSite=Lax'));assert.equal(readKey(cookie),k);assert.equal(readKey(keyCookie(k,false)),null);assert.equal(readKey(keyCookie(k,false),true),k);});

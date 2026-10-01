@@ -1,0 +1,1 @@
+process.env.SECRET_BASE_TARGET='cloudflare';await import('./run-framework.mjs');

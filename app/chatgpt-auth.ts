@@ -1,3 +1,5 @@
+import {env} from 'cloudflare:workers';
+import {readKey,keyIdentity} from '../src/server/key-auth';
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -20,6 +22,7 @@ const CALLBACK_PATH = "/callback";
 
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
   const requestHeaders = await headers();
+  if(env.AUTH_MODE==='key'){const key=readKey(requestHeaders.get('cookie'),import.meta.env.DEV);const id=key?await keyIdentity(key):null;return id?{userId:id,displayName:'',email:'',fullName:null}:null;}
   const userId = requestHeaders.get(USER_ID_HEADER);
   const email = requestHeaders.get(USER_EMAIL_HEADER);
   if (!userId || !email) return null;

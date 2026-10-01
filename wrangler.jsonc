@@ -1,0 +1,24 @@
+{
+  "name": "double-secret-base",
+  "account_id": "e18dd6b4cca4ad434e6eccac45578318",
+  "main": "./build/cloudflare-worker.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": true,
+  "vars": {
+    "AUTH_MODE": "key"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "double-secret-base",
+      "database_id": "9a1d30b5-24d2-473a-9826-42c8e91b47a2",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
