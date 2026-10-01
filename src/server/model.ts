@@ -26,7 +26,7 @@ export function transition(room:Room,p:Slot,op:string,b:Record<string,unknown>,n
   case 'buy':{const d=decorations.find(d=>d.id===b.id);if(!d)throw Error('找不到这件装饰');if(r.owned.includes(d.id))break;if(r.balance<d.price)throw Error('星星还不够，去一起玩一会儿吧');r.balance-=d.price;r.owned.push(d.id);break;}
   case 'place':{const d=decorations.find(d=>d.id===b.id);if(!d||!r.owned.includes(d.id)||b.slot!==d.slot)throw Error('请放到装饰对应的位置');r.layout[d.slot]=d.id;break;}
   case 'message':{const text=clean(b.text,1000),parentId=typeof b.parentId==='string'?b.parentId:null;if(parentId&&!r.messages.some(m=>m.id===parentId))throw Error('原留言不存在');r.messages.push({id:crypto.randomUUID(),author:p,authorId:r.members[p]!.id,text,parentId,created:now,read:[p===0,p===1]});if(r.messages.length>200)throw Error('信箱已满，清理一些旧留言再写吧');break;}
-  case 'message-delete':{const m=r.messages.find(m=>m.id===b.id);if(!m||m.authorId!==r.members[p]!.id)throw Error('只能删除自己的留言');m.text=null;break;}
+  case 'message-delete':{const m=r.messages.find(m=>m.id===b.id);if(!m||m.authorId!==r.members[p]!.id)throw Error('只能删除自己的留言');m.text=null;r.messages=r.messages.filter(item=>item.text!==null||r.messages.some(reply=>reply.parentId===item.id&&reply.text!==null));break;}
   case 'message-read':{for(const m of r.messages)m.read[p]=true;break;}
   case 'profile':{r.members[p]!.name=clean(b.name,20);if(b.roomName!==undefined)r.name=clean(b.roomName,30);break;}
   case 'invite-renew':{if(p!==0||r.members[1])throw Error('只有创建者可在未配对时生成邀请');break;}

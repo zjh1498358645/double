@@ -1,0 +1,1 @@
+import {PNG} from 'pngjs';import {writeFileSync} from 'node:fs';const p=new PNG({width:480,height:320});for(let y=0;y<320;y++)for(let x=0;x<480;x++){const i=(y*480+x)*4;p.data[i]=225;p.data[i+1]=220-(y>160?50:0);p.data[i+2]=185;p.data[i+3]=255;}writeFileSync('../../work/test-photo.png',PNG.sync.write(p));
