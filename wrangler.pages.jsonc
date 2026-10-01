@@ -1,12 +1,11 @@
 {
-  "name": "double-secret-base",
+  "name": "double-secret-base-api",
   "account_id": "e18dd6b4cca4ad434e6eccac45578318",
-  "main": "./build/cloudflare-worker.ts",
+  "pages_build_output_dir": "./dist-pages-api",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "workers_dev": true,
   "vars": {
     "AUTH_MODE": "key",
     "PUBLIC_ORIGINS": "https://zjh1498358645.github.io"
@@ -15,11 +14,7 @@
     {
       "binding": "DB",
       "database_name": "double-secret-base",
-      "database_id": "9a1d30b5-24d2-473a-9826-42c8e91b47a2",
-      "migrations_dir": "drizzle"
+      "database_id": "9a1d30b5-24d2-473a-9826-42c8e91b47a2"
     }
-  ],
-  "observability": {
-    "enabled": true
-  }
+  ]
 }

@@ -46,3 +46,6 @@ next-env.d.ts
 /work/
 *.tsbuildinfo
 
+
+/dist-github/
+/dist-pages-api/

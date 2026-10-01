@@ -1,0 +1,3 @@
+'use client';
+import {useEffect,useState} from 'react';
+export default function PrivatePhoto({src,alt,className,loading}:{src:string;alt:string;className?:string;loading?:'lazy'}){const [url,setUrl]=useState('');useEffect(()=>{let disposed=false,objectUrl='';const controller=new AbortController();fetch(src,{signal:controller.signal}).then(async r=>{if(!r.ok)throw Error('照片暂时无法加载');return r.blob();}).then(b=>{if(!disposed){objectUrl=URL.createObjectURL(b);setUrl(objectUrl);}}).catch(()=>{});return()=>{disposed=true;controller.abort();if(objectUrl)URL.revokeObjectURL(objectUrl);};},[src]);return url?<img src={url} alt={alt} className={className} loading={loading}/>:<span className={className} role="img" aria-label={alt}>照片加载中…</span>;}

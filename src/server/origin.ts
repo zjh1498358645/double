@@ -1,0 +1,1 @@
+export function permittedOrigin(request:Request,extra=''){const origin=request.headers.get('origin');return !!origin&&(origin===new URL(request.url).origin||extra.split(',').map(x=>x.trim()).filter(Boolean).includes(origin));}
