@@ -1,0 +1,54 @@
+import type {State,Action,Slot,GameId} from './engine.ts';
+export type Extra={fleets?:(number[]|null)[];shots?:number[][];hands?:(number[]|null)[];pile?:number[];stock?:number[];seed:number;walls?:number[];clues?:number[];position?:number;keys?:number[];codes?:string[];hint?:string;stage?:number;attempts?:number;round?:number;statements?:string[];lie?:number;word?:string;words?:string[];remaining?:number;combo?:number;counts?:number[]};
+const entries:[GameId,string,string,string,string,string][]=[
+ ['fleet','海战棋','对战','🚢','藏好舰队，推理对方的位置','各自在6×6海域放置长度3、2、2的三艘直线舰船。轮流攻击，先击中对方全部7格获胜。'],
+ ['cards','双人纸牌','对战','🃏','留一张好牌，等待翻盘','按颜色或数字出牌；禁行让对方跳过，加二让对方抽两张。无牌可出时抽一张并交回合。先出完手牌获胜，200步后比较剩余牌数。'],
+ ['maze','合作迷宫','合作','🧭','你看路，我来指方向','轮流移动同一个探险者。你们分别看到上下和左右的墙，互相交流路线，收集两个钥匙后到达右下角。'],
+ ['escape','密码密室','合作','🔐','一半线索在你手里','连续解开三道四位密码锁。每人只看到一半线索，交换信息才能开锁。每关最多8次机会。'],
+ ['liar','谁在说谎','默契','🕵️','三个故事，哪句藏了小秘密','轮流写下两真一假的三句话，由对方猜假话。可以先聊天提问，猜对得1分，共6回合。'],
+ ['draw','你画我猜','合作','🎨','用画笔传递一个小秘密','轮流画系统给出的词语，另一人输入答案。像素画支持手指涂抹和橡皮，每回合6次猜测，也可跳过，共4回合。'],
+ ['chemistry','默契大考验','默契','💞','八个情境，看看你有多懂我','各自回答8个生活情境，并预测对方答案。提交后一起揭晓，每猜对一题得1分。'],
+ ['match','双人消消乐','合作','🍬','一起做出漂亮的连击','轮流交换相邻糖果，横竖三连消除，连锁加倍得分。共30步，合作达到220分过关；无可用交换会自动重排。']
+];
+export const extendedCatalog=entries.map(([id,name,tag,icon,description,rule],i)=>({id,name,tag,icon,description,rule,color:['blue','peach','green','pink'][i%4]}));
+const words=['雨伞','西瓜','猫咪','飞机','太阳','蛋糕','花朵','房子','小鱼','自行车','眼镜','雪人','兔子','火箭','树叶','咖啡'];
+const situations=[['临时多出一天假期，你会？','出门旅行','在家休息','约朋友','学点新东西'],['对方忙到忘了吃饭，你会？','准备饭菜','发消息提醒','陪着一起吃','等忙完再问'],['两人旅行意见不同，先？','轮流决定','找折中方案','比较优缺点','各挑一天'],['收到意外惊喜，最想？','马上分享','认真道谢','拍照留念','回赠惊喜'],['遇到烦心事，希望对方？','安静听我说','给出建议','带我散心','让我独处一会'],['一起学新技能，想选？','做饭','运动','绘画','乐器'],['纪念普通的一天，愿意？','拍一张照片','留一句话','买个小物件','一起散步'],['久别重逢，第一件事？','拥抱','吃顿好饭','分享近况','出去逛逛'],['计划周末，你更愿意？','提前安排','临时决定','交给对方','各安排一半'],['共同目标遇到困难，会？','拆成小步骤','互相鼓励','调整计划','休息后继续']];
+function rnd(e:Extra){e.seed=(Math.imul(e.seed,1664525)+1013904223)>>>0;return e.seed/4294967296;}
+function shuffle<T>(a:T[],e:Extra){for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd(e)*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function int(v:unknown,min:number,max:number){if(typeof v!=='number'||!Number.isInteger(v)||v<min||v>max)throw Error('请选择有效位置');return v;}
+const dirs=[-7,1,7,-1];
+export function setupExtra(s:State,seed:number){if(!extendedCatalog.some(g=>g.id===s.id))return;const e:Extra={seed:seed>>>0};s.extra=e;
+ if(s.id==='fleet'){e.fleets=[null,null];e.shots=[[],[]];}
+ if(s.id==='cards'){e.stock=shuffle(Array.from({length:96},(_,i)=>i%48),e);e.hands=[e.stock.splice(0,7),e.stock.splice(0,7)];const n=e.stock.findIndex(v=>v%12<10);e.pile=[e.stock.splice(n,1)[0]];}
+ if(s.id==='maze'){e.walls=Array(49).fill(15);e.position=0;e.keys=[];const visited=new Set([0]),stack=[0];while(stack.length){const c=stack.at(-1)!,r=Math.floor(c/7),col=c%7;const options=[0,1,2,3].filter(d=>d===0?r>0&&!visited.has(c-7):d===1?col<6&&!visited.has(c+1):d===2?r<6&&!visited.has(c+7):col>0&&!visited.has(c-1));if(!options.length){stack.pop();continue;}const d=options[Math.floor(rnd(e)*options.length)],n=c+dirs[d];e.walls[c]&=~(1<<d);e.walls[n]&=~(1<<((d+2)%4));visited.add(n);stack.push(n);}}
+ if(s.id==='escape'){e.codes=Array.from({length:3},()=>String(Math.floor(rnd(e)*10000)).padStart(4,'0'));e.stage=0;e.attempts=0;}
+ if(s.id==='liar'){e.round=0;e.statements=[];}
+ if(s.id==='draw'){e.words=shuffle([...words],e).slice(0,4);e.word=e.words[0];e.round=0;e.attempts=0;s.board=Array(144).fill(0);}
+ if(s.id==='chemistry')s.questions=shuffle([...situations],e).slice(0,8).map(([title,...options])=>({title,options}));
+ if(s.id==='match'){e.remaining=30;e.combo=0;newCandy(s);}
+}
+function matches(board:(number|null)[]){const out=new Set<number>();for(let c=0;c<36;c++)for(const d of [1,6]){if(d===1&&c%6>3||d===6&&c>=24)continue;const v=board[c];if(v!==null&&board[c+d]===v&&board[c+2*d]===v){out.add(c);out.add(c+d);out.add(c+2*d);}}return [...out];}
+function swaps(board:(number|null)[]){for(let a=0;a<36;a++)for(const b of [a%6<5?a+1:-1,a<30?a+6:-1]){if(b<0)continue;const copy=[...board];[copy[a],copy[b]]=[copy[b],copy[a]];if(matches(copy).length)return true;}return false;}
+function newCandy(s:State){do{s.board=[];for(let i=0;i<36;i++){let v:number;do{v=Math.floor(rnd(s.extra!)*5);}while(i%6>1&&s.board[i-1]===v&&s.board[i-2]===v||i>=12&&s.board[i-6]===v&&s.board[i-12]===v);s.board.push(v);}}while(!swaps(s.board));}
+function scored(s:State){s.done=true;s.winner=s.scores[0]===s.scores[1]?null:s.scores[0]>s.scores[1]?0:1;}
+function nextDrawing(s:State){const e=s.extra!;e.round!++;if(e.round===4){s.done=true;return;}s.turn=(e.round!%2) as Slot;e.word=e.words![e.round!];e.attempts=0;s.board=Array(144).fill(0);}
+export function playExtra(s:State,p:Slot,a:Action){const e=s.extra!,other=(1-p) as Slot;const turn=()=>{if(s.turn!==p)throw Error('等对方完成这一回合');};
+ if(s.id==='fleet'){if(a.answers!==undefined){if(e.fleets![p])throw Error('舰队已布置');if(!Array.isArray(a.answers)||a.answers.length!==7||new Set(a.answers).size!==7)throw Error('请放置3、2、2格的三艘舰船');a.answers.forEach(v=>int(v,0,35));let offset=0;for(const length of [3,2,2]){const ship=a.answers.slice(offset,offset+length).sort((x,y)=>x-y),step=ship[1]-ship[0];if(![1,6].includes(step)||ship.some((v,i)=>v!==ship[0]+i*step)||step===1&&Math.floor(ship[0]/6)!==Math.floor(ship.at(-1)!/6))throw Error('每艘船须横向或竖向连续');offset+=length;}e.fleets![p]=[...a.answers];return;}if(!e.fleets!.every(Boolean))throw Error('等待双方布置舰队');turn();const c=int(a.cell,0,35);if(e.shots![p].includes(c))throw Error('这里已经攻击过');e.shots![p].push(c);if(e.fleets![other]!.includes(c))s.scores[p]++;if(s.scores[p]===7){s.done=true;s.winner=p;}s.turn=other;}
+ else if(s.id==='cards'){turn();const hand=e.hands![p]!,top=e.pile!.at(-1)!;const draw=(who:Slot,n:number)=>{for(let i=0;i<n;i++){if(!e.stock!.length){const last=e.pile!.pop()!;e.stock=shuffle(e.pile!,e);e.pile=[last];}if(e.stock!.length)e.hands![who]!.push(e.stock!.pop()!);}};const c=int(a.choice,-1,hand.length-1);if(c===-1){draw(p,1);s.turn=other;}else{const card=hand[c];if(Math.floor(card/12)!==Math.floor(top/12)&&card%12!==top%12)throw Error('请选择相同颜色或数字的牌');hand.splice(c,1);e.pile!.push(card);if(!hand.length){s.done=true;s.winner=p;}else if(card%12===11){draw(other,2);s.turn=p;}else s.turn=card%12===10?p:other;}if(!s.done&&s.moves>=199){s.scores=e.hands!.map(h=>-h!.length);scored(s);}}
+ else if(s.id==='maze'){turn();const d=int(a.choice,0,3),c=e.position!;if(e.walls![c]&(1<<d))throw Error('这个方向有墙，问问对方的线索');e.position=c+dirs[d];if([6,42].includes(e.position)&&!e.keys!.includes(e.position))e.keys!.push(e.position);if(e.position===48&&e.keys!.length===2)s.done=true;s.turn=other;}
+ else if(s.id==='escape'){if(typeof a.guess!=='string'||!/^\d{4}$/.test(a.guess))throw Error('请输入四位密码');if(a.guess===e.codes![e.stage!]){e.stage!++;e.attempts=0;if(e.stage===3){s.done=true;s.scores=[3,3];}}else{e.attempts!++;if(e.attempts===8)s.done=true;}}
+ else if(s.id==='liar'){if(!e.statements!.length){turn();if(!Array.isArray(a.statements)||a.statements.length!==3||a.statements.some(v=>typeof v!=='string'||!v.trim()||v.trim().length>80)||new Set(a.statements.map(v=>v.trim())).size!==3)throw Error('写下三句不同的话，每句1到80字');e.lie=int(a.choice,0,2);e.statements=a.statements.map(v=>v.trim());}else{if(p===s.turn)throw Error('等对方猜');if(int(a.choice,0,2)===e.lie)s.scores[p]++;e.round!++;e.statements=[];delete e.lie;s.turn=p;if(e.round===6)scored(s);}}
+ else if(s.id==='draw'){if(a.pixels!==undefined){turn();if(!Array.isArray(a.pixels)||!a.pixels.length||a.pixels.length>64)throw Error('一次最多涂64格');const color=int(a.choice,0,5);a.pixels.forEach(v=>int(v,0,143));for(const c of a.pixels)s.board[c]=color;}else if(a.choice===-1){turn();nextDrawing(s);}else{if(p===s.turn)throw Error('画画的人不能猜自己的词');if(typeof a.guess!=='string'||!a.guess.trim()||a.guess.length>30)throw Error('请输入猜测');if(a.guess.trim()===e.word){s.scores[p]++;nextDrawing(s);}else{e.attempts!++;if(e.attempts===6)nextDrawing(s);}}}
+ else if(s.id==='chemistry'){if(s.answers[p]!==null)throw Error('你已提交');for(const list of [a.answers,a.predictions]){if(!Array.isArray(list)||list.length!==8)throw Error('完成8个情境和预测');list.forEach(v=>int(v,0,3));}s.answers[p]=a.answers!;s.predictions[p]=a.predictions!;if(s.answers.every(Boolean)){s.scores=[0,1].map(slot=>s.predictions[slot]!.filter((v,i)=>v===s.answers[1-slot]![i]).length);s.done=true;}}
+ else if(s.id==='match'){turn();const x=int(a.a,0,35),y=int(a.b,0,35);if(!(Math.abs(x-y)===6||Math.abs(x-y)===1&&Math.floor(x/6)===Math.floor(y/6)))throw Error('只能交换上下左右相邻糖果');[s.board[x],s.board[y]]=[s.board[y],s.board[x]];let clear=matches(s.board);if(!clear.length)throw Error('这次交换不能形成三连');let combo=0;while(clear.length&&combo<10){combo++;s.scores[p]+=clear.length*combo;for(const c of clear)s.board[c]=null;for(let col=0;col<6;col++){const values=Array.from({length:6},(_,r)=>s.board[r*6+col]).filter(v=>v!==null);while(values.length<6)values.unshift(Math.floor(rnd(e)*5));for(let r=0;r<6;r++)s.board[r*6+col]=values[r];}clear=matches(s.board);}e.combo=combo;e.remaining!--;if(clear.length||!swaps(s.board))newCandy(s);if(e.remaining===0||s.scores.reduce((x,y)=>x+y,0)>=220)s.done=true;s.turn=other;}
+}
+export function showExtra(state:State,visible:Partial<State>,p:Slot){if(!state.extra)return;const e=visible.extra!,raw=state.extra;e.seed=0; // shuffle state and puzzle solutions stay on the server
+ if(state.id==='fleet'){delete e.fleets;e.clues=raw.fleets![p]||[];e.counts=raw.fleets!.map(v=>v?1:0);visible.board=Array.from({length:36},(_,i)=>raw.shots![p].includes(i)?raw.fleets![1-p]!.includes(i)?1:0:null);}
+ if(state.id==='cards'){e.hands=[null,null];e.hands[p]=raw.hands![p];e.counts=raw.hands!.map(h=>h!.length);delete e.stock;e.pile=[raw.pile!.at(-1)!];}
+ if(state.id==='maze'){delete e.walls;e.clues=raw.walls!.map(v=>v&(p===0?5:10));}
+ if(state.id==='escape'){delete e.codes;e.hint=raw.stage!<3?raw.codes![raw.stage!].split('').map((c,i)=>i%2===p?c:'·').join(''):'已打开';}
+ if(state.id==='liar')delete e.lie;
+ if(state.id==='draw'){delete e.words;if(state.turn!==p)delete e.word;}
+ if(state.id==='chemistry'&&!state.done){visible.answers=[null,null];visible.answers[p]=state.answers[p];visible.predictions=[null,null];visible.predictions[p]=state.predictions[p];}
+}
+

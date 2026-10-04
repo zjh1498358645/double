@@ -1,9 +1,11 @@
 export type Slot = 0 | 1;
-export type GameId = 'tictactoe'|'connect4'|'gomoku'|'reversi'|'rps'|'memory'|'reflex'|'bulls'|'quiz'|'predict'|'ranking'|'puzzle';
-export type Action = {cell?:number;choice?:number;secret?:string;guess?:string;answers?:number[];predictions?:number[];trials?:number[];a?:number;b?:number};
-export type State = {id:GameId;turn:Slot;done:boolean;winner:Slot|null;board:(number|null)[];scores:number[];choices:(number|null)[];rounds:number[][];deck:number[];matched:number[];flipped:number[];lastFlip:number[];secrets:(string|null)[];guesses:{slot:Slot;guess:string;exact:number;near:number}[];solved:boolean[];answers:(number[]|null)[];predictions:(number[]|null)[];questions:Question[];tiles:number[];trials:(number[]|null)[];moves:number};
+import {extendedCatalog,setupExtra,playExtra,showExtra,type Extra} from './extended.ts';
+export type GameId = 'tictactoe'|'connect4'|'gomoku'|'reversi'|'rps'|'memory'|'reflex'|'bulls'|'quiz'|'predict'|'ranking'|'puzzle'|'fleet'|'cards'|'maze'|'escape'|'liar'|'draw'|'chemistry'|'match';
+export type Action = {cell?:number;choice?:number;secret?:string;guess?:string;answers?:number[];predictions?:number[];trials?:number[];a?:number;b?:number;statements?:string[];pixels?:number[]};
+export type State = {id:GameId;turn:Slot;done:boolean;winner:Slot|null;board:(number|null)[];scores:number[];choices:(number|null)[];rounds:number[][];deck:number[];matched:number[];flipped:number[];lastFlip:number[];secrets:(string|null)[];guesses:{slot:Slot;guess:string;exact:number;near:number}[];solved:boolean[];answers:(number[]|null)[];predictions:(number[]|null)[];questions:Question[];tiles:number[];trials:(number[]|null)[];moves:number;extra?:Extra};
 export type Question={title:string;options:string[]};
 export const catalog:{id:GameId;name:string;tag:string;icon:string;description:string;rule:string;color:string}[]=[
+ ...extendedCatalog,
  {id:'quiz',name:'默契问答',tag:'默契',icon:'💌',description:'你的答案，会和我一样吗？',rule:'各自回答5道题，两人提交后揭晓。每题选择相同，默契值加1。',color:'pink'},
  {id:'tictactoe',name:'井字棋',tag:'对战',icon:'✕',description:'三步连线，小小的较量',rule:'轮流在3×3棋盘落子，横、竖或斜向三子连线获胜。',color:'green'},
  {id:'memory',name:'记忆翻牌',tag:'对战',icon:'🍓',description:'一起找回藏起来的小可爱',rule:'16张牌组成8对，轮流翻两张。配对成功得1分并继续，失败则轮到对方。',color:'peach'},
@@ -36,7 +38,7 @@ export function initial(id:GameId,seed:number):State{
  if(id==='quiz')s.questions=shuffled(questions,random).slice(0,5);
  if(id==='predict')s.questions=shuffled(pairQuestions,random).slice(0,5);
  if(id==='ranking')s.questions=[rankingSets[Math.floor(random()*10)]];
- return s;
+ setupExtra(s,seed);return s;
 }
 function integer(v:unknown,min:number,max:number):number{if(typeof v!=='number'||!Number.isInteger(v)||v<min||v>max)throw Error('请选择有效的位置');return v;}
 function finishScores(s:State){s.done=true;s.winner=s.scores[0]===s.scores[1]?null:s.scores[0]>s.scores[1]?0:1;}
@@ -75,10 +77,11 @@ export function act(state:State,p:Slot,a:Action):State{
  }else if(s.id==='reflex'){
   if(s.trials[p]!==null)throw Error('已经完成计时');if(!Array.isArray(a.trials)||a.trials.length!==5)throw Error('请完成5次计时');a.trials.forEach(v=>{if(typeof v!=='number'||!Number.isFinite(v)||v<0||v>10000)throw Error('计时数据无效');});s.trials[p]=a.trials;s.scores[p]=[...a.trials].sort((x,y)=>x-y)[2];if(s.trials.every(v=>v!==null)){s.done=true;s.winner=s.scores[0]===s.scores[1]?null:s.scores[0]<s.scores[1]?0:1;}
  }
- s.moves++;return s;
+ if(s.extra)playExtra(s,p,a);s.moves++;return s;
 }
 export function view(state:State,p:Slot){const s:Partial<State>=structuredClone(state);delete s.secrets;delete s.deck;
  if(state.id==='memory')s.board=state.deck.map((v,i)=>state.matched.includes(i)||state.flipped.includes(i)||state.lastFlip.includes(i)?v:null);
  if(!state.done){if(state.id==='rps'){s.choices=[null,null];s.choices[p]=state.choices[p];}if(['quiz','predict','ranking'].includes(state.id)){s.answers=[null,null];s.answers[p]=state.answers[p];s.predictions=[null,null];s.predictions[p]=state.predictions[p];}if(state.id==='reflex'){s.trials=[null,null];s.trials[p]=state.trials[p];s.scores=[0,0];s.scores[p]=state.scores[p];}}
- return {...s,ready:state.id==='bulls'?state.secrets.map(Boolean):state.id==='reflex'?state.trials.map(v=>v!==null):state.answers.map(v=>v!==null)};
+ showExtra(state,s,p);return {...s,ready:state.id==='bulls'?state.secrets.map(Boolean):state.id==='reflex'?state.trials.map(v=>v!==null):state.answers.map(v=>v!==null)};
 }
+

@@ -1,11 +1,13 @@
 'use client';
 import {useState,useEffect,useRef} from 'react';
+import ExtendedPlay from './ExtendedPlay';
 import {catalog,reversiFlips,type State,type Slot,type Action} from '@/src/games/engine';
 export type VisibleState=Partial<State>&{ready:boolean[]};
 type Props={state:VisibleState;slot:Slot;names:string[];busy:boolean;onAction:(a:Action)=>Promise<boolean>};
 const fruits=['🍓','🍋','🍒','🥝','🍇','🍊','🍑','🫐'];
 export default function GamePlay({state:s,slot,names,busy,onAction}:Props){const [selected,setSelected]=useState<number|null>(null),[digits,setDigits]=useState(''),[answers,setAnswers]=useState<number[]>([-1,-1,-1,-1,-1]),[predictions,setPredictions]=useState<number[]>([-1,-1,-1,-1,-1]),[order,setOrder]=useState([0,1,2,3,4]);const myTurn=s.turn===slot&&!s.done&&!busy;
  const send=async(a:Action)=>{if(await onAction(a)){setDigits('');setSelected(null);}};
+ if(s.extra)return <ExtendedPlay state={s} slot={slot} names={names} busy={busy} onAction={onAction}/>;
  if(['tictactoe','connect4','gomoku','reversi'].includes(s.id||'')){const width=s.id==='tictactoe'?3:s.id==='connect4'?7:s.id==='gomoku'?15:8,board=s.board||[];
  return <><p className="turn-note">{s.done?'这一局结束啦':myTurn?'轮到你啦，慢慢想':`等${names[s.turn||0]}落子`}</p>{s.id==='connect4'&&<div className="drop-buttons">{Array.from({length:7},(_,i)=><button disabled={!myTurn} aria-label={`第${i+1}列落子`} key={i} onClick={()=>send({cell:i})}>↓</button>)}</div>}<div className={`board ${s.id}`} style={{gridTemplateColumns:`repeat(${width},1fr)`}}>{board.map((value,i)=><button key={i} className={`cell ${selected===i?'selected':''}`} disabled={s.id==='connect4'||!myTurn||value!==null} aria-label={`第${Math.floor(i/width)+1}行第${i%width+1}列${value===null?'空格':value===slot?'我的棋子':'对方棋子'}`} onClick={()=>s.id==='gomoku'?setSelected(i):send({cell:i})}>{value!==null?<span className={`piece p${value}`}>{s.id==='tictactoe'?(value===0?'✕':'○'):''}</span>:s.id==='reversi'&&myTurn&&reversiFlips(board,i,slot).length?<span className="legal-dot"/>:null}</button>)}</div>{s.id==='gomoku'&&selected!==null&&<div className="move-confirm"><p>第 {Math.floor(selected/15)+1} 行 · 第 {selected%15+1} 列</p><div className="direction-buttons">{[[-15,'↑'],[-1,'←'],[1,'→'],[15,'↓']].map(([n,label])=><button key={label} aria-label={`调整位置${label}`} onClick={()=>{const next=selected+Number(n);if(next>=0&&next<225&&((n!==1&&n!==-1)||Math.floor(next/15)===Math.floor(selected/15)))setSelected(next);}}>{label}</button>)}<button className="primary" disabled={busy||board[selected]!==null} onClick={()=>send({cell:selected})}>确认落子</button></div></div>}</>;}
  if(s.id==='memory')return <><p className="turn-note">{s.done?'翻牌完成':myTurn?'轮到你，翻开两张牌':`等${names[s.turn||0]}翻牌`} · {s.scores?.join(' : ')}</p><div className="memory-board">{(s.board||[]).map((v,i)=><button key={i} className={v!==null?'flipped':''} disabled={!myTurn||(s.matched||[]).includes(i)||(s.flipped||[]).includes(i)} aria-label={`第${i+1}张牌${v!==null?' '+fruits[v]:'，未翻开'}`} onClick={()=>send({cell:i})}>{v===null?<span>✿</span>:fruits[v]}</button>)}</div><p className="muted">找到一对就可以继续翻。一起慢慢记住它们。</p></>;
@@ -26,4 +28,5 @@ function Reflex({done,submitted,busy,onSubmit}:{done:boolean;submitted:boolean;b
  if(done||submitted)return <div className="empty-state"><span>⚡</span><h3>计时已收好</h3><p>两人都完成5次后比较中位成绩。</p></div>;
  return <div className="reflex"><p>{trials.length} / 5 次</p><button className={`reflex-button ${phase}`} disabled={busy||trials.length===5} onClick={click}>{phase==='green'?'快点！':phase==='waiting'?'等等…':'点我开始'}</button><p aria-live="polite">{note}</p><div className="trial-pills">{trials.map((v,i)=><span key={i}>{v} ms</span>)}</div>{trials.length===5&&<button className="primary wide" disabled={busy} onClick={()=>onSubmit(trials)}>提交我的成绩</button>}</div>;
 }
+
 

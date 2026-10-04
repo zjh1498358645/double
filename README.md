@@ -1,6 +1,6 @@
 # 小满 · 双人秘密基地
 
-手机优先的双人网页：温暖手绘小屋、12种游戏、日常与自定义挑战、星星装饰、留言与私人相册。
+手机优先的双人网页：温暖手绘小屋、20种游戏、日常与自定义挑战、星星装饰、留言与私人相册。
 
 ## 免费 Cloudflare 部署
 
@@ -49,3 +49,4 @@ integration.mjs需要运行本地开发服务器127.0.0.1:5173。每次生成两
 ## 技术说明
 
 Cloudflare D1批处理的事务行为依据[官方D1文档](https://developers.cloudflare.com/d1/worker-api/d1-database/)；R2服务端读写依据[官方R2文档](https://developers.cloudflare.com/r2/api/workers/workers-api-reference/)。照片使用pngjs的浏览器实现，避免Node zlib原型与Workers兼容层的差异。
+
