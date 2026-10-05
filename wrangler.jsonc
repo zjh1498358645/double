@@ -7,6 +7,7 @@
     "nodejs_compat"
   ],
   "workers_dev": true,
+  "durable_objects":{"bindings":[{"name":"ROOM_REALTIME","class_name":"RoomRealtime","script_name":"double-secret-base-realtime"}]},
   "vars": {
     "AUTH_MODE": "key",
     "PUBLIC_ORIGINS": "https://zjh1498358645.github.io"

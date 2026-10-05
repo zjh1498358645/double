@@ -1,0 +1,7 @@
+{
+ "name":"double-secret-base-realtime","account_id":"e18dd6b4cca4ad434e6eccac45578318",
+ "main":"workers/realtime.ts","compatibility_date":"2026-10-01","workers_dev":false,
+ "durable_objects":{"bindings":[{"name":"ROOM_REALTIME","class_name":"RoomRealtime"}]},
+ "migrations":[{"tag":"v1","new_sqlite_classes":["RoomRealtime"]}],
+ "d1_databases":[{"binding":"DB","database_name":"double-secret-base","database_id":"9a1d30b5-24d2-473a-9826-42c8e91b47a2"}]
+}
