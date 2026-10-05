@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {newRoom,transition,snapshot} from '../src/server/model.ts';
+function invite(){let r=newRoom('a','A','R',0);r.members[1]={id:'b',name:'B'};return transition(r,0,'game-create',{id:'draw'},10);}
+test('recipient can decline one identified invitation without awarding stars',()=>{const r=invite();const declined=transition(r,1,'game-decline',{gameId:r.game.id},20);assert.equal(declined.game.status,'abandoned');assert.equal(declined.balance,r.balance);assert.equal(declined.history.length,0);});
+test('creator and stale invitations cannot decline current game',()=>{const r=invite();assert.throws(()=>transition(r,0,'game-decline',{gameId:r.game.id},20));assert.throws(()=>transition(r,1,'game-decline',{gameId:'old'},20));const active=transition(r,1,'game-accept',{},20);assert.throws(()=>transition(active,1,'game-decline',{gameId:r.game.id},30));});
+test('double invitation cannot replace current game and offline recipient sees pending invite',()=>{const r=invite();assert.throws(()=>transition(r,0,'game-create',{id:'cards'},20));assert.equal(snapshot(r,1,100).game.id,r.game.id);assert.equal(snapshot(r,1,100).game.status,'invited');});

@@ -37,6 +37,7 @@ export function transition(room:Room,p:Slot,op:string,b:Record<string,unknown>,n
  switch(op){
   case 'game-create':{if(!r.members[1])throw Error('配对后就能一起玩啦');if(r.game&&['active','invited'].includes(r.game.status))throw Error('先完成或结束当前这局');const gameId=b.id as GameId;if(!catalog.some(g=>g.id===gameId))throw Error('没有这个游戏');const seed=crypto.getRandomValues(new Uint32Array(1))[0];r.game={id:crypto.randomUUID(),creator:p,status:'invited',state:initial(gameId,seed),updated:now,endVotes:[],chat:[]};break;}
   case 'game-accept':{if(!r.game||r.game.status!=='invited'||r.game.creator===p)throw Error('等待对方接受邀请');r.game.status='active';r.game.updated=now;break;}
+  case 'game-decline':{if(!r.game||r.game.status!=='invited'||r.game.creator===p||b.gameId!==r.game.id)throw Error('这份邀请已经结束');r.game.status='abandoned';r.game.updated=now;break;}
   case 'game-chat':{if(!r.game||r.game.id!==b.gameId||!['active','finished'].includes(r.game.status))throw Error('这局已经结束或被替换');addGameMessage(r,p,clean(b.text,300),'chat',now);break;}
   case 'game-action':{if(!r.game||r.game.status!=='active'||b.gameId!==undefined&&b.gameId!==r.game.id)throw Error('等待对方加入，或者开始新一局');const before=r.game.state; r.game.state=act(before,p,b as Action);gameFeedback(r,before,p,b,now);r.game.updated=now;if(r.game.state.done){r.game.status='finished';recordGame(r,now);}break;}
   case 'game-resign':{if(!r.game||!['active','invited'].includes(r.game.status))throw Error('没有进行中的游戏');r.game.status='abandoned';r.game.updated=now;break;}
