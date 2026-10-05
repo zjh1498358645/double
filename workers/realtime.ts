@@ -33,7 +33,7 @@ export class RoomRealtime{
   const game=current.room.game;if(!game||game.status!=='active'||game.state.id!=='draw'||m.gameId!==game.id||m.gameEpoch!==drawingEpoch(game))return;
   if(m.type==='preview-resync'){const stroke=this.layer.strokes[m.strokeId];if(stroke)this.send(ws,{v:1,type:'preview-full',gameEpoch:this.layer.epoch,stroke});return;}
   if(game.state.turn!==c.slot)return;const extra=game.state.extra!,saved=extra.strokes?.find(s=>s.id===m.strokeId);if(!saved&&extra.strokeIds?.includes(m.strokeId))return;if(Object.keys(this.layer.strokes).length>=160&&!this.layer.strokes[m.strokeId])return;
-  const next=applyPreview(this.layer,m);if(next.gaps.includes(m.strokeId)){this.send(ws,{v:1,type:'preview-reset',gameEpoch:this.layer.epoch});return;}this.layer=next;for(const peer of this.ctx.getWebSockets()){const p=peer.deserializeAttachment() as Connection;if(peer!==ws&&this.authorized(p))this.send(peer,m);}
+  if(saved&&!this.layer.strokes[m.strokeId])this.layer.strokes[m.strokeId]={...saved,seq:0};const next=applyPreview(this.layer,m);if(next.gaps.includes(m.strokeId)){this.layer={epoch:this.layer.epoch,strokes:{},gaps:[]};this.broadcast({v:1,type:'preview-reset',gameEpoch:this.layer.epoch});return;}this.layer=next;for(const peer of this.ctx.getWebSockets()){const p=peer.deserializeAttachment() as Connection;if(peer!==ws&&this.authorized(p))this.send(peer,m);}
  }catch{ws.close(1008,'Invalid packet');}}
  async webSocketClose(ws:WebSocket){try{ws.close();}catch{}await this.read(true);this.broadcast({v:1,type:'presence',slots:this.presence()});}
  async webSocketError(ws:WebSocket){await this.webSocketClose(ws);}
