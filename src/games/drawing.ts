@@ -6,3 +6,11 @@ export function validateStroke(value:unknown):Stroke{
  return {id:s.id,color:s.color,width:s.width,tool:s.tool,points:s.points.map(p=>[...p])};
 }
 export function strokePath(points:number[][]){if(!points.length)return '';if(points.length===1)return `M${points[0].join(' ')} l0.1 0`;return `M${points[0].join(' ')} `+points.slice(1).map(p=>`L${p.join(' ')}`).join(' ');}
+export function extendStroke(previous:Stroke,next:Stroke){
+ if(previous.color!==next.color||previous.width!==next.width||previous.tool!==next.tool||previous.points.slice(0,next.points.length).some((p,i)=>p[0]!==next.points[i][0]||p[1]!==next.points[i][1]))throw Error('这一笔已更新，请重新同步');
+ return next.points.length>previous.points.length?next:previous;
+}
+export function enqueueStroke(queue:Stroke[],stroke:Stroke){const snapshot={...stroke,points:stroke.points.map(p=>[...p])},index=queue.findIndex(s=>s.id===stroke.id);if(index<0)return [...queue,snapshot];return queue.map((s,i)=>i===index&&snapshot.points.length>s.points.length?snapshot:s);}
+export function acknowledgeStroke(queue:Stroke[],sent:Stroke){return queue.filter(s=>s.id!==sent.id||s.points.length>sent.points.length);}
+export function visibleStrokes(saved:Stroke[],queue:Stroke[],live:Stroke|null){const all=new Map<string,Stroke>();for(const s of [...saved,...queue,...(live?[live]:[])])if(!all.has(s.id)||all.get(s.id)!.points.length<s.points.length)all.set(s.id,s);return [...all.values()];}
+export function createStrokePublisher(emit:(stroke:Stroke)=>void){const lengths=new Map<string,number>();return {reset:()=>lengths.clear(),publish:(s:Stroke)=>{if(s.points.length<=(lengths.get(s.id)||0))return;lengths.set(s.id,s.points.length);emit({...s,points:s.points.map(p=>[...p])});}};}
