@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {invitationLink,readInvitation} from '../src/invites.ts';
+test('share link carries room/game invitation without key or previous parameters',()=>{const url=invitationLink('https://example.com/double/?private=secret#key','invite','ABCDEF123456');assert.equal(url,'https://example.com/double/?invite=ABCDEF123456');assert.equal(readInvitation(url).invite,'ABCDEF123456');const id='48b9d020-1234-1234-1234-123456789abc';assert.equal(readInvitation(invitationLink(url,'play',id)).play,id);});
+test('invalid invitations do not trigger enrollment or game actions',()=>{assert.deepEqual(readInvitation('https://example.com/?invite=bad&play=%3Cscript%3E'),{});});

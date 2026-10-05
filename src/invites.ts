@@ -1,0 +1,2 @@
+export function invitationLink(base:string,kind:'invite'|'play',value:string){const url=new URL(base);url.search='';url.hash='';url.searchParams.set(kind,value);return url.toString();}
+export function readInvitation(base:string):{invite?:string;play?:string}{const q=new URL(base).searchParams,result:{invite?:string;play?:string}={};const invite=q.get('invite')||'',play=q.get('play')||'';if(/^[A-Fa-f0-9]{12}$/.test(invite))result.invite=invite.toUpperCase();if(/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(play))result.play=play;return result;}
