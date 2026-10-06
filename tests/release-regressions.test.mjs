@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {initial,act} from '../src/games/engine.ts';import {newRoom,transition} from '../src/server/model.ts';
+test('delayed uncommitted stroke cannot resurrect cleared board after version retry',()=>{let s=initial('draw',3);s=act(s,0,{drawing:'clear',round:0,drawingRevision:0});assert.throws(()=>act(s,0,{round:0,drawingRevision:0,stroke:{id:'delayed',color:0,width:8,tool:'pen',points:[[1,1],[2,2]]}}));});
+test('old invite acceptance cannot activate a replacement game',()=>{let r=newRoom('a','A','R',0);r.members[1]={id:'b',name:'B'};r=transition(r,0,'game-create',{id:'draw'},1);const old=r.game.id;r=transition(r,0,'game-resign',{},2);r=transition(r,0,'game-create',{id:'bomb'},3);assert.throws(()=>transition(r,1,'game-accept',{gameId:old},4));});

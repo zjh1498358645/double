@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { initial, act, view, catalog } from '../src/games/engine.ts';
 
-test('20 different games registered',()=>assert.equal(catalog.length,20));
+test('21 different games registered',()=>assert.equal(catalog.length,21));
 test('tic tac toe win and invalid turn',()=>{let s=initial('tictactoe',42); assert.throws(()=>act(s,1,{cell:0})); for(const [p,c] of [[0,0],[1,3],[0,1],[1,4],[0,2]])s=act(s,p,{cell:c});assert.equal(s.winner,0);assert.equal(s.done,true);assert.throws(()=>act(s,1,{cell:8}));});
 test('connect4 gravity and vertical win',()=>{let s=initial('connect4',3);for(let i=0;i<3;i++){s=act(s,0,{cell:0});s=act(s,1,{cell:1});}s=act(s,0,{cell:0});assert.equal(s.board[35],0);assert.equal(s.winner,0);});
 test('gomoku 15x15 and five in line',()=>{let s=initial('gomoku',1);assert.equal(s.board.length,225);for(let i=0;i<4;i++){s=act(s,0,{cell:i});s=act(s,1,{cell:30+i});}s=act(s,0,{cell:4});assert.equal(s.winner,0);});

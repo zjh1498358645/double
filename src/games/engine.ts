@@ -1,7 +1,7 @@
 export type Slot = 0 | 1;
 import {extendedCatalog,setupExtra,playExtra,showExtra,type Extra} from './extended.ts';
-export type GameId = 'tictactoe'|'connect4'|'gomoku'|'reversi'|'rps'|'memory'|'reflex'|'bulls'|'quiz'|'predict'|'ranking'|'puzzle'|'fleet'|'cards'|'maze'|'escape'|'liar'|'draw'|'chemistry'|'match';
-export type Action = {cell?:number;choice?:number;secret?:string;guess?:string;answers?:number[];predictions?:number[];trials?:number[];a?:number;b?:number;statements?:string[];pixels?:number[];stroke?:import('./drawing.ts').Stroke;drawing?:'undo'|'clear';round?:number};
+export type GameId = 'tictactoe'|'connect4'|'gomoku'|'reversi'|'rps'|'memory'|'reflex'|'bulls'|'quiz'|'predict'|'ranking'|'puzzle'|'fleet'|'cards'|'maze'|'escape'|'liar'|'draw'|'chemistry'|'match'|'bomb';
+export type Action = {cell?:number;choice?:number;secret?:string;guess?:string;answers?:number[];predictions?:number[];trials?:number[];a?:number;b?:number;statements?:string[];pixels?:number[];stroke?:import('./drawing.ts').Stroke;drawing?:'undo'|'clear';round?:number;drawingRevision?:number};
 export type State = {id:GameId;turn:Slot;done:boolean;winner:Slot|null;board:(number|null)[];scores:number[];choices:(number|null)[];rounds:number[][];deck:number[];matched:number[];flipped:number[];lastFlip:number[];secrets:(string|null)[];guesses:{slot:Slot;guess:string;exact:number;near:number}[];solved:boolean[];answers:(number[]|null)[];predictions:(number[]|null)[];questions:Question[];tiles:number[];trials:(number[]|null)[];moves:number;extra?:Extra};
 export type Question={title:string;options:string[]};
 export const catalog:{id:GameId;name:string;tag:string;icon:string;description:string;rule:string;color:string}[]=[

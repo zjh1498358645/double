@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {cooperativeResult,isCooperative} from '../src/games/results.ts';
+test('bomb completion and failure have accurate cooperative result headings',()=>{assert.equal(isCooperative('bomb'),true);assert.equal(cooperativeResult({id:'bomb',extra:{stage:5}}),'全部模块已解除，一起安全过关！');assert.equal(cooperativeResult({id:'bomb',extra:{stage:2}}),'安全机会用完了，下次一起再试');});

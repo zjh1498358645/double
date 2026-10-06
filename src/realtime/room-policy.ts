@@ -3,7 +3,7 @@ export type TicketIdentity={roomId:string;userId:string;slot:0|1;epoch:string;or
 type TicketRecord=TicketIdentity&{expires:number};
 type Storage={get<T>(key:string):Promise<T|undefined>;put(key:string,value:unknown):Promise<unknown>;delete(key:string):Promise<unknown>};
 export async function digest(value:string){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),v=>v.toString(16).padStart(2,'0')).join('');}
-export async function memberEpoch(members:({id:string}|null)[]){return digest(JSON.stringify(members.map(m=>m?.id||'')));}
+export async function memberEpoch(members:({id:string}|null)[],generation:string=''){return digest(JSON.stringify([generation,members.map(m=>m?.id||'')]));}
 export class TicketVault{
  private storage:Storage;private now:()=>number;
  constructor(storage:Storage,now:()=>number=Date.now){this.storage=storage;this.now=now;}

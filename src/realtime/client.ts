@@ -4,7 +4,7 @@ type Timer=ReturnType<typeof setTimeout>;
 type Clock={now:()=>number;random:()=>number;setTimeout:(fn:()=>void,ms:number)=>Timer;clearTimeout:(id:Timer)=>void};
 type Socket=Pick<WebSocket,'readyState'|'send'|'close'|'onopen'|'onclose'|'onerror'|'onmessage'>;
 export function createRealtimeClient(options:{getTicket:()=>Promise<{url:string}>;onMessage:(message:ServerMessage)=>void;onStatus:(status:ConnectionStatus)=>void;WebSocketImpl?:new(url:string)=>Socket;clock?:Clock}){
- const clock=options.clock||{now:Date.now,random:Math.random,setTimeout,clearTimeout};const SocketClass=options.WebSocketImpl||WebSocket;
+ const clock=options.clock||{now:Date.now,random:Math.random,setTimeout:(fn,ms)=>setTimeout(fn,ms),clearTimeout:id=>clearTimeout(id)};const SocketClass=options.WebSocketImpl||WebSocket;
  let active=false,generation=0,socket:Socket|null=null,timer:Timer|undefined,heartbeat:Timer|undefined,attempts=0,lastSeen=0,connected=false;
  const clear=()=>{if(timer!==undefined)clock.clearTimeout(timer);if(heartbeat!==undefined)clock.clearTimeout(heartbeat);timer=heartbeat=undefined;};
  const schedule=(token:number)=>{if(!active||token!==generation)return;connected=false;options.onStatus('reconnecting');const delay=[1000,2000,4000,8000,15000][Math.min(attempts++,4)]*(0.8+clock.random()*0.4);timer=clock.setTimeout(()=>void connect(),delay);};

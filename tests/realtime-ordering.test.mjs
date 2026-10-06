@@ -1,0 +1,9 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {RoomRealtime} from '../workers/realtime.ts';import {memberEpoch} from '../src/realtime/room-policy.ts';import {newRoom,transition} from '../src/server/model.ts';import {drawingEpoch} from '../src/realtime/protocol.ts';
+test('overlapping D1 reads cannot reorder consecutive live drawing packets',async()=>{
+ let room=newRoom('a','A','R',0);room.members[1]={id:'b',name:'B'};room=transition(room,0,'game-create',{id:'draw'},1);room=transition(room,1,'game-accept',{},2);
+ const epoch=await memberEpoch(room.members),packets=[];let reads=0;
+ const connection=slot=>({roomId:'r',userId:slot?'b':'a',slot,epoch,origin:'https://front',connectionId:String(slot),visible:true,lastSeen:Date.now(),rate:{since:Date.now(),count:0}});
+ const socket=slot=>{let c=connection(slot);return {deserializeAttachment:()=>c,serializeAttachment:v=>{c=v;},send:m=>{if(slot)packets.push(JSON.parse(m));},close:()=>{}};};const a=socket(0),b=socket(1);
+ const original=globalThis.WebSocketRequestResponsePair;globalThis.WebSocketRequestResponsePair=class {};
+ try{const state={storage:{get:async()=> 'r'},blockConcurrencyWhile:f=>f(),setWebSocketAutoResponse:()=>{},getWebSockets:()=>[a,b],getWebSocketAutoResponseTimestamp:()=>null};const db={prepare:()=>({bind(){return this;},async first(){const call=++reads;await new Promise(r=>setTimeout(r,call===1?40:0));return {id:'r',version:1,data:JSON.stringify(room)};}})};const worker=new RoomRealtime(state,{DB:db});const message=seq=>JSON.stringify({v:1,type:'preview',gameId:room.game.id,gameEpoch:drawingEpoch(room.game),strokeId:'moving',seq,offset:seq-1,color:0,width:8,tool:'pen',points:[[seq,seq]]});await Promise.all([worker.webSocketMessage(a,message(1)),worker.webSocketMessage(a,message(2))]);assert.deepEqual(packets.filter(m=>m.type==='preview').map(m=>m.seq),[1,2]);}finally{globalThis.WebSocketRequestResponsePair=original;}
+});
