@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {normalizeDeploymentToken} from '../scripts/deploy-token.mjs';
+test('deployment token permits pasted line wraps but rejects commands and duplicates',()=>{const token='A'.repeat(40);assert.equal(normalizeDeploymentToken('\n '+token.slice(0,20)+'\n'+token.slice(20)+' \n'),token);assert.throws(()=>normalizeDeploymentToken('curl --header Authorization: Bearer '+token));assert.throws(()=>normalizeDeploymentToken(token+'\n'+token));});
