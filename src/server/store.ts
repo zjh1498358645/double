@@ -37,7 +37,7 @@ export class BaseStore{
   await this.commit(row,r,a,extras);return {ok:true};
  }
  async photo(a:Actor,id:string){const m=await this.membership(a);if(!m)throw new AppError('没有权限',403);const r:Room=JSON.parse((await this.raw(m.room_id)).data);const photo=r.photos.find(p=>p.id===id);if(!photo)throw new AppError('照片不存在',404);return photo;}
- async addPhoto(a:Actor,key:string,caption:string){const m=await this.membership(a);if(!m)throw new AppError('没有权限',403);const row=await this.raw(m.room_id),r:Room=JSON.parse(row.data);if(r.photos.length>=100)throw new AppError('相册已达到100张，请先删除一些照片');const id=crypto.randomUUID();r.photos.push({id,key,author:m.slot,authorId:a.userId,caption:caption.trim().slice(0,300),created:this.now()});await this.commit(row,r,a);return {id};}
+ async addPhoto(a:Actor,key:string,caption:string,preview=false){const m=await this.membership(a);if(!m)throw new AppError('没有权限',403);const row=await this.raw(m.room_id),r:Room=JSON.parse(row.data);if(r.photos.length>=100)throw new AppError('相册已达到100张，请先删除一些照片');const id=crypto.randomUUID();r.photos.push({id,key,preview,author:m.slot,authorId:a.userId,caption:caption.trim().slice(0,300),created:this.now()});await this.commit(row,r,a);return {id};}
  async removePhoto(a:Actor,id:string){const m=await this.membership(a);if(!m)throw new AppError('没有权限',403);const row=await this.raw(m.room_id),r:Room=JSON.parse(row.data),photo=r.photos.find(p=>p.id===id);if(!photo||photo.authorId!==a.userId)throw new AppError('只能删除自己的照片',403);r.photos=r.photos.filter(p=>p.id!==id);await this.commit(row,r,a);return photo.key;}
 }
 

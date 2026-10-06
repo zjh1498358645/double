@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {createPhotoTap} from '../src/photo-tap.ts';
+test('photo opens for a double tap but never for scrolls or pinch',()=>{const tap=createPhotoTap();tap.start(20,20,1);assert.equal(tap.end(1000),false);tap.start(21,20,1);assert.equal(tap.end(1200),true);tap.start(20,20,1);tap.move(20,50,1);assert.equal(tap.end(1300),false);tap.start(20,20,1);assert.equal(tap.end(1400),false);tap.start(20,20,2);assert.equal(tap.end(1500),false);});
