@@ -2,12 +2,14 @@
 import {useState,useEffect,useRef} from 'react';
 import ExtendedPlay from './ExtendedPlay';import {useGameEffects} from './useGameEffects';
 import BombPlay from './BombPlay';
+import AdventurePlay from './AdventurePlay';
 import {catalog,reversiFlips,type State,type Slot,type Action} from '@/src/games/engine';
 export type VisibleState=Partial<State>&{ready:boolean[]};
 type Props={state:VisibleState;slot:Slot;names:string[];busy:boolean;onAction:(a:Action)=>Promise<boolean>};
 const fruits=['🍓','🍋','🍒','🥝','🍇','🍊','🍑','🫐'];
 export default function GamePlay({state:s,slot,names,busy,onAction}:Props){const [selected,setSelected]=useState<number|null>(null),[digits,setDigits]=useState(''),[answers,setAnswers]=useState<number[]>([-1,-1,-1,-1,-1]),[predictions,setPredictions]=useState<number[]>([-1,-1,-1,-1,-1]),[order,setOrder]=useState([0,1,2,3,4]);const effects=useGameEffects(s);const myTurn=s.turn===slot&&!s.done&&!busy;
  const send=async(a:Action)=>{if(await onAction(a)){setDigits('');setSelected(null);}};
+ if(s.adventure)return <AdventurePlay state={s} slot={slot} names={names} busy={busy} onAction={onAction}/>;
  if(s.id==='bomb')return <BombPlay state={s} slot={slot} busy={busy} onAction={onAction}/>;
  if(s.extra)return <ExtendedPlay state={s} slot={slot} names={names} busy={busy} onAction={onAction}/>;
  if(['tictactoe','connect4','gomoku','reversi'].includes(s.id||'')){const width=s.id==='tictactoe'?3:s.id==='connect4'?7:s.id==='gomoku'?15:8,board=s.board||[];

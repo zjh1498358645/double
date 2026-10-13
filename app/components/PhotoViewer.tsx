@@ -1,5 +1,8 @@
 'use client';
-import PrivatePhoto from './PrivatePhoto';import {formatPublishedTime} from '@/src/display-time';
-export default function PhotoViewer({id,caption,created}:{id:string;caption:string;created:number}){
- return <div className="single-photo-view"><div className="single-photo-stage"><PrivatePhoto className="single-photo-image" src={`/api/base/photo/${id}`} alt={caption||'我们的回忆'} download/></div><footer><p className="photo-caption">{caption||'我们收藏的这一刻'}</p><p className="muted">发布于 {formatPublishedTime(created)}</p></footer></div>;
+import {useEffect,useState} from 'react';import {ChevronLeft,ChevronRight} from 'lucide-react';import PrivatePhoto from './PrivatePhoto';import {formatPublishedTime} from '@/src/display-time';
+export default function PhotoViewer({id,caption,created,preview=false,index=0,total=1,onPrevious,onNext}:{id:string;caption:string;created:number;preview?:boolean;index?:number;total?:number;onPrevious?:()=>void;onNext?:()=>void}){
+ const [pixels,setPixels]=useState({width:0,height:0});
+ useEffect(()=>{setPixels({width:0,height:0});},[id]);
+ useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.key==='ArrowLeft'&&onPrevious){e.preventDefault();onPrevious();}if(e.key==='ArrowRight'&&onNext){e.preventDefault();onNext();}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[onPrevious,onNext]);
+ return <div className="single-photo-view"><div className="single-photo-stage"><PrivatePhoto className="single-photo-image" src={`/api/base/photo/${id}`} previewSrc={preview?`/api/base/photo/${id}?preview=1`:undefined} alt={caption||'我们的回忆'} download onImageLoad={(width,height)=>setPixels({width,height})}/></div><footer>{total>1&&<div className="photo-pagination"><button aria-label="上一张照片" disabled={!onPrevious} onClick={onPrevious}><ChevronLeft size={20}/></button><span>{index+1} / {total}</span><button aria-label="下一张照片" disabled={!onNext} onClick={onNext}><ChevronRight size={20}/></button></div>}<p className="photo-caption">{caption||'我们收藏的这一刻'}</p><p className="muted">发布于 {formatPublishedTime(created)}{pixels.width?` · ${pixels.width} × ${pixels.height}`:''}</p>{pixels.width>0&&Math.max(pixels.width,pixels.height)<=480&&<p className="photo-resolution-note">这张照片分辨率较低，重新上传清晰的原图可改善画质。</p>}</footer></div>;
 }

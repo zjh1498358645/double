@@ -15,7 +15,10 @@ function reward(r:Room,id:string,amount:number,now:number){if(r.ledger.some(e=>e
 function recordGame(r:Room,now:number){const g=r.game!;if(r.history.some(h=>h.id===g.id))return;r.history.push({id:g.id,gameId:g.state.id,winner:g.state.winner,scores:g.state.scores,date:now});r.history=r.history.slice(-100);reward(r,`game:${g.id}`,5,now);}
 function addGameMessage(r:Room,author:Slot|null,text:string,kind:GameMessage['kind'],now:number){const g=r.game!;g.chat=[...(g.chat||[]),{id:crypto.randomUUID(),author,text,kind,created:now}].slice(-100);}
 function gameFeedback(r:Room,before:State,p:Slot,b:Record<string,unknown>,now:number){const s=r.game!.state,e=before.extra,n=r.members[p]!.name;let text='';
- if(s.id==='draw'&&typeof b.guess==='string'){addGameMessage(r,p,b.guess.trim(),'guess',now);text=b.guess.trim()===e!.word?'猜中了！答案：'+e!.word:e!.round!==s.extra!.round?'本轮机会用完，答案：'+e!.word:'还没猜中，继续看画！';}
+ if(s.adventure?.kind==='mines'&&before.adventure?.kind==='mines'){const e=before.adventure,a=s.adventure;text=b.mode==='flag'?n+(a.flags.includes(Number(b.cell))?'标记了可疑格':'取消了旗子'):a.lives<e.lives?n+'踩到地雷，剩余 '+a.lives+' 次共同机会':n+'揭开 '+(s.scores[p]-before.scores[p])+' 个安全格';}
+ else if(s.adventure?.kind==='circuit'&&before.adventure?.kind==='circuit'){const a=s.adventure;text=b.advance===true?n+'一起进入第 '+(a.stage+1)+' 关':a.stageComplete?n+'接通了本关全部线路！':n+'旋转线路 · 已点亮 '+a.powered.length+' / '+a.pipes.length;}
+ else if(s.adventure?.kind==='dots')text=n+'连线'+(s.adventure.lastBoxes.length?'，围住 '+s.adventure.lastBoxes.length+' 格，可以继续':'，轮到对方');
+ else if(s.id==='draw'&&typeof b.guess==='string'){addGameMessage(r,p,b.guess.trim(),'guess',now);text=b.guess.trim()===e!.word?'猜中了！答案：'+e!.word:e!.round!==s.extra!.round?'本轮机会用完，答案：'+e!.word:'还没猜中，继续看画！';}
  else if(s.id==='draw'&&b.choice===-1)text=n+'跳过本轮，答案：'+e!.word;
  else if(s.id==='escape')text=n+'尝试 '+b.guess+' · '+(e!.stage!==s.extra!.stage?'开锁成功！':'密码不对，还剩 '+(8-s.extra!.attempts!)+' 次');
  else if(s.id==='liar'&&e!.statements!.length)text=n+(b.choice===e!.lie?'猜中了':'没猜中')+'！假话是第'+(e!.lie!+1)+'句：「'+e!.statements![e!.lie!]+'」';
@@ -48,7 +51,7 @@ export function transition(room:Room,p:Slot,op:string,b:Record<string,unknown>,n
   case 'place':{const d=decorations.find(d=>d.id===b.id);if(!d||!r.owned.includes(d.id)||b.slot!==d.slot)throw Error('请放到装饰对应的位置');r.layout[d.slot]=d.id;break;}
   case 'message':{const text=clean(b.text,1000),parentId=typeof b.parentId==='string'?b.parentId:null;if(parentId&&!r.messages.some(m=>m.id===parentId))throw Error('原留言不存在');r.messages.push({id:crypto.randomUUID(),author:p,authorId:r.members[p]!.id,text,parentId,created:now,read:[p===0,p===1]});if(r.messages.length>200)throw Error('信箱已满，清理一些旧留言再写吧');break;}
   case 'message-delete':{const m=r.messages.find(m=>m.id===b.id);if(!m||m.authorId!==r.members[p]!.id)throw Error('只能删除自己的留言');m.text=null;r.messages=r.messages.filter(item=>item.text!==null||r.messages.some(reply=>reply.parentId===item.id&&reply.text!==null));break;}
-  case 'message-read':{for(const m of r.messages)m.read[p]=true;break;}
+  case 'message-read':{const ids=b.ids;if(ids!==undefined&&(!Array.isArray(ids)||ids.length>200||ids.some(id=>typeof id!=='string'||!r.messages.some(m=>m.id===id))))throw Error('留言记录无效');for(const m of r.messages)if(ids===undefined||(ids as string[]).includes(m.id))m.read[p]=true;break;}
   case 'profile':{r.members[p]!.name=clean(b.name,20);if(b.roomName!==undefined)r.name=clean(b.roomName,30);break;}
   case 'invite-renew':{if(p!==0||r.members[1])throw Error('只有创建者可在未配对时生成邀请');break;}
   default:throw Error('未知操作');
