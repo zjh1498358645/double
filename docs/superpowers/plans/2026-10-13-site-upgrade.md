@@ -11,7 +11,7 @@
 - [x] Library: mobile search, category filters, favorites, recently played and clearly labeled invitation actions. Preserve the existing visual identity and navigation.
 - [x] Mailbox: local export with content, author, time and status; acknowledge only messages visible in the foreground rather than the whole mailbox. Test message selection and export escaping.
 - [x] Album: original quality description, upload states, correct download format and fullscreen previous/next navigation. Keep uncropped aspect ratio.
-- [ ] Verify tests, TypeScript and production builds; review independent changes. Deploy backend with schema first, then main/Pages. Check actual deployment steps and published assets, and verify key interactions through available UI tooling.
+- [x] Verify tests, TypeScript and production builds; review independent changes. Deploy backend with schema first, then main/Pages. Check actual deployment steps and published assets, and verify key interactions through available UI tooling.
 
 ## Risks to verify
 
@@ -19,4 +19,4 @@ Large mobile uploads must receive enough time; historical low-resolution uploads
 
 ## Verification evidence
 
-135 automated tests passed; TypeScript and GitHub production build passed. Cloudflare build passed after resolving Windows sandbox dependency access. Isolated Miniflare tests passed exact-byte JPEG 2,785,051 B / PNG 8,656,357 B / WebP 2,697,332 B storage, preview generation, member-only reads, paired deletion, selective read receipts and invitations/actions/chat for all three games. Native browser QA at 390px tested search, favorite toggle and dual-player preparation UI. Final independent code review found no important blocker. Deployment and public assets remain to be checked.
+135 automated tests passed; TypeScript and GitHub production build passed. Cloudflare build passed after resolving Windows sandbox dependency access. Isolated Miniflare tests passed exact-byte JPEG 2,785,051 B / PNG 8,656,357 B / WebP 2,697,332 B storage, preview generation, member-only reads, paired deletion, selective read receipts and invitations/actions/chat for all three games. Native browser QA at 390px tested search, favorite toggle, dual-player preparation UI, mines reveal and circuit rotation. A real mouse-click regression in dots-and-boxes identified the global active transform overriding absolute centering; a stronger active selector preserves geometry, and the same mouse click now claims the edge and changes turns. Final independent code review found no important blocker. Backend schema, realtime rooms, Worker, Pages API and GitHub Pages deployed successfully (597eaae). Live temporary-room tests passed all original file hashes, private reads/deletion and three game invitations/actions/chat. Public page HTTP 200 and feature bundle assertions passed.
